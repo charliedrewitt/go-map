@@ -1,0 +1,27 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "go tidy & fmt",
+      "type": "shell",
+      "command": "go mod tidy && go fmt ${workspaceFolder}/... && staticcheck ${workspaceFolder}/... && go build ./...",
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "go test",
+      "type": "shell",
+      "command": "go mod tidy && go fmt ${workspaceFolder}/... && go test ./...",
+      "problemMatcher": [],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}
