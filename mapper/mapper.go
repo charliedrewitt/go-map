@@ -37,7 +37,8 @@ func mapInternal(source interface{}, targetType reflect.Type) interface{} {
 		panic("source and target must be same kind (e.g. struct, array, map)")
 	}
 
-	if srcType.Kind() == reflect.Struct {
+	switch srcType.Kind() {
+	case reflect.Struct:
 		tgtFields := reflect.VisibleFields(tgtType)
 
 		for i, f := range tgtFields {
@@ -47,29 +48,45 @@ func mapInternal(source interface{}, targetType reflect.Type) interface{} {
 				tgtField := tgtInstance.Field(i)
 				srcField := src.FieldByName(f.Name)
 
-				if tgtField.Kind() == reflect.Struct || tgtField.Kind() == reflect.Array || tgtField.Kind() == reflect.Slice {
+				switch tgtField.Kind() {
+				case reflect.Struct, reflect.Array, reflect.Slice, reflect.Map:
 					if srcField.Type() == tgtField.Type() {
 						tgtField.Set(srcField)
 					} else {
-						childMapped := mapInternal(srcField.Interface(), tgtField.Type())
-
-						tgtField.Set(reflect.ValueOf(childMapped))
+						tgtField.Set(reflect.ValueOf(mapInternal(srcField.Interface(), tgtField.Type())))
 					}
-				} else {
+				default:
 					tgtField.Set(srcField)
 				}
 			}
 		}
-	} else if srcType.Kind() == reflect.Array || srcType.Kind() == reflect.Slice {
+	case reflect.Array, reflect.Slice:
 		tgtInstance = reflect.MakeSlice(tgtType, src.Len(), src.Len())
 
 		for i := 0; i < src.Len(); i++ {
 			srcIndex := src.Index(i)
 			tgtIndex := tgtInstance.Index(i)
 
-			tgtIndex.Set(reflect.ValueOf(mapInternal(srcIndex.Interface(), reflect.TypeOf(tgtIndex.Interface()))))
+			if srcIndex.Type() == tgtIndex.Type() {
+				tgtIndex.Set(srcIndex)
+			} else {
+				tgtIndex.Set(reflect.ValueOf(mapInternal(srcIndex.Interface(), reflect.TypeOf(tgtIndex.Interface()))))
+			}
+		}
+	case reflect.Map:
+		tgtInstance = reflect.MakeMap(tgtType)
+
+		for _, k := range src.MapKeys() {
+			mapVal := src.MapIndex(k)
+			if srcType.Elem() == tgtType.Elem() {
+				tgtInstance.SetMapIndex(k, mapVal)
+			} else {
+				tgtInstance.SetMapIndex(k, reflect.ValueOf(mapInternal(mapVal.Interface(), tgtType.Elem())))
+			}
 		}
 	}
+	
+
 
 	return tgtInstance.Interface()
 }
