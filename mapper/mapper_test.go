@@ -1,7 +1,7 @@
 package mapper_test
 
 import (
-	"github.com/charlie-drewitt/go-map/mapper"
+	"github.com/charliedrewitt/go-map/mapper"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"

@@ -1,4 +1,4 @@
-module github.com/charlie-drewitt/go-map
+module github.com/charliedrewitt/go-map
 
 go 1.18
 
